@@ -2,29 +2,31 @@
 
 Este proyecto implementa una aplicación web que permite **buscar libros**, **ver su disponibilidad** y **consultar su ubicación en un mapa** interactivo de la biblioteca.
 
-## Estructura de carpets
+## Estructura de carpetas
 
+```text
 proyecto_biblioteca/ (carpeta raíz)
 ├── frontend/
-│ ├── assets/
-│ │ ├── css/
-│ │ │ ├── main.css
-│ │ │ └── mapa.css
-│ │ ├── js/
-│ │ │ ├── main.js
-│ │ │ └── mapa.js
-│ │ └── img/
-│ │ ├── plano_biblioteca.svg
-│ │ └── portada_libro_1.jpg
-│ ├── index.html
-│ └── detalle_libro.html
+│   ├── assets/
+│   │   ├── css/
+│   │   │   ├── main.css
+│   │   │   └── mapa.css
+│   │   ├── js/
+│   │   │   ├── main.js
+│   │   │   └── mapa.js
+│   │   └── img/
+│   │       ├── plano_biblioteca.svg
+│   │       └── portada_libro_1.jpg
+│   ├── index.html
+│   └── detalle_libro.html
 ├── backend/
-│ ├── api/
-│ │ ├── **init**.py
-│ │ └── search.py
-│ ├── data/
-│ │ ├── libros.json
-│ │ └── libros.xlsx
-│ ├── app.py
-│ └── requirements.txt
+│   ├── api/
+│   │   ├── __init__.py
+│   │   └── search.py
+│   ├── data/
+│   │   ├── libros.json
+│   │   └── libros.xlsx
+│   ├── app.py
+│   └── requirements.txt
 └── README.md
+```
