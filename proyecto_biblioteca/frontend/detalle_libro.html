@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Detalle del libro · Biblioteca</title>
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/mapa.css" />
+  <style>
+    .detalle { display: grid; gap: 1.5rem; grid-template-columns: 220px 1fr; align-items: start; }
+    .detalle img { width: 100%; height: auto; border-radius: .5rem; box-shadow: 0 1px 4px rgba(0,0,0,.15); background: var(--surface-2); }
+    .meta { display: grid; gap: .5rem; }
+    .meta dt { font-weight: 600; color: var(--text-2); }
+    .meta dd { margin: 0 0 .5rem 0; }
+    .volver { margin-top: 1rem; }
+    @media (max-width: 900px) { .detalle { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a href="/" class="back-link" aria-label="Volver al inicio">← Volver</a>
+    <h1>Ficha del libro</h1>
+  </header>
+
+  <main class="container">
+    <article id="detalle" class="detalle" aria-live="polite">
+      <img id="portada" alt="Portada del libro" />
+      <div>
+        <h2 id="titulo">Cargando…</h2>
+        <dl class="meta">
+          <dt>Autor</dt><dd id="autor">—</dd>
+          <dt>ISBN</dt><dd id="isbn">—</dd>
+          <dt>Categoría</dt><dd id="categoria">—</dd>
+          <dt>Año</dt><dd id="anio">—</dd>
+          <dt>Páginas</dt><dd id="paginas">—</dd>
+          <dt>Ubicación</dt><dd id="ubicacion">—</dd>
+        </dl>
+        <p id="descripcion" class="descripcion"></p>
+        <p class="volver"><a href="/">← Volver al listado</a></p>
+      </div>
+    </article>
+
+    <section aria-labelledby="mapa-title">
+      <h2 id="mapa-title">Ubicación en el mapa</h2>
+      <div id="mapaContainer" class="mapa-container" data-viewbox-width="600" data-viewbox-height="400">
+        <img id="mapaImg" src="assets/img/plano_biblioteca.svg" alt="Plano de la biblioteca" />
+        <div id="mapaOverlay" class="mapa-overlay" aria-hidden="true"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <small>© <span id="year"></span> Biblioteca MHC — Proyecto de ejemplo</small>
+  </footer>
+
+  <script defer src="assets/js/mapa.js"></script>
+  <script defer>
+  const BASE_API = window.location.origin + "/api";
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
+  const el = (id) => document.getElementById(id);
+
+  function setYear(){ document.getElementById("year").textContent = new Date().getFullYear(); }
+  setYear();
+
+  async function cargarDetalle() {
+    try {
+      const res = await fetch(`${BASE_API}/books/${encodeURIComponent(id)}`);
+      if (!res.ok) throw new Error("No encontrado");
+      const data = await res.json();
+      el("titulo").textContent = data.titulo;
+      el("autor").textContent = data.autor || "—";
+      el("isbn").textContent = data.isbn || "—";
+      el("categoria").textContent = data.categoria || "—";
+      el("anio").textContent = data.anio || "—";
+      el("paginas").textContent = data.paginas || "—";
+      el("descripcion").textContent = data.descripcion || "Sin descripción.";
+      el("ubicacion").textContent = `${data.sala || "—"} • Estante ${data.estante || "—"}`;
+      el("portada").src = data.portada_url || "assets/img/portada_libro_1.jpg";
+      if (window.Mapa && typeof window.Mapa.updateMarkers === "function") {
+        window.Mapa.updateMarkers([data]);
+      }
+    } catch (err) {
+      el("detalle").innerHTML = "<p>No se pudo cargar la ficha del libro.</p>";
+    }
+  }
+  cargarDetalle();
+  </script>
+</body>
+</html>
