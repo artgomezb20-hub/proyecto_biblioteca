@@ -3,49 +3,103 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Biblioteca · Catálogo y Mapa</title>
+  <meta name="description" content="Catálogo interactivo de la Biblioteca MHC: busca libros y ubícalos fácilmente en el mapa." />
+  <meta name="theme-color" content="#2c3e50" />
+  <title>Biblioteca MHC · Catálogo y Mapa</title>
+
+  <!-- Estilos principales -->
   <link rel="stylesheet" href="assets/css/main.css" />
   <link rel="stylesheet" href="assets/css/mapa.css" />
+
+  <!-- Fuente opcional o íconos -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Ejemplo: <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" /> -->
 </head>
 <body>
-  <header class="site-header">
+  <header class="site-header" role="banner">
     <h1>Biblioteca <span class="brand">MHC</span></h1>
     <p class="subtitle">Busca un libro y encuéntralo en el mapa</p>
+    <nav aria-label="Navegación principal" class="main-nav">
+      <ul>
+        <li><a href="#titulo-buscador">Catálogo</a></li>
+        <li><a href="#titulo-mapa">Mapa</a></li>
+      </ul>
+    </nav>
   </header>
 
-  <main class="container">
+  <main class="container" role="main">
+    <!-- === SECCIÓN DE BÚSQUEDA === -->
     <section class="buscador" aria-labelledby="titulo-buscador">
-      <h2 id="titulo-buscador">Búsqueda</h2>
-      <form id="searchForm" class="search-form" role="search">
+      <h2 id="titulo-buscador">Catálogo de búsqueda</h2>
+
+      <form id="searchForm" class="search-form" role="search" autocomplete="off">
         <label for="searchInput" class="sr-only">Buscar por título, autor o ISBN</label>
-        <input id="searchInput" name="q" type="search" placeholder="Título, autor o ISBN…" autocomplete="off" />
+        <input
+          id="searchInput"
+          name="q"
+          type="search"
+          placeholder="Título, autor o ISBN…"
+          aria-label="Buscar libro"
+          required
+        />
+
         <label for="categoryFilter" class="sr-only">Filtrar por categoría</label>
         <select id="categoryFilter" name="categoria" aria-label="Categoría">
           <option value="">Todas las categorías</option>
         </select>
-        <button type="submit">Buscar</button>
+
+        <button type="submit" aria-label="Ejecutar búsqueda">Buscar</button>
       </form>
+
       <div class="result-meta" aria-live="polite">
         <span id="resultCount">Cargando…</span>
       </div>
+
       <div id="results" class="results-grid" aria-live="polite" aria-busy="false"></div>
     </section>
 
+    <!-- === SECCIÓN DEL MAPA === -->
     <aside class="mapa-col" aria-labelledby="titulo-mapa">
       <h2 id="titulo-mapa">Mapa de la biblioteca</h2>
-      <div id="mapaContainer" class="mapa-container" data-viewbox-width="600" data-viewbox-height="400">
-        <img id="mapaImg" src="assets/img/plano_biblioteca.svg" alt="Plano de la biblioteca con secciones A, B, C y D." />
+
+      <div
+        id="mapaContainer"
+        class="mapa-container"
+        data-viewbox-width="600"
+        data-viewbox-height="400"
+        role="region"
+        aria-label="Mapa interactivo de ubicación de libros"
+      >
+        <img
+          id="mapaImg"
+          src="assets/img/plano_biblioteca.svg"
+          alt="Plano de la biblioteca con secciones A, B, C y D."
+          loading="lazy"
+        />
         <div id="mapaOverlay" class="mapa-overlay" aria-hidden="true"></div>
       </div>
-      <p class="mapa-ayuda">Consejo: pasa el ratón sobre los marcadores para ver detalles. Haz clic para abrir la ficha del libro.</p>
+
+      <p class="mapa-ayuda">💡 Consejo: pasa el ratón sobre los marcadores para ver detalles, o haz clic para abrir la ficha del libro.</p>
     </aside>
   </main>
 
-  <footer class="site-footer">
-    <small>© <span id="year"></span> Biblioteca MHC — Proyecto de ejemplo</small>
+  <footer class="site-footer" role="contentinfo">
+    <small>© <span id="year"></span> Biblioteca MHC — Proyecto de ejemplo académico</small>
   </footer>
 
+  <noscript>
+    <p>⚠️ Este sitio requiere JavaScript para funcionar correctamente. Por favor, actívalo en tu navegador.</p>
+  </noscript>
+
+  <!-- Scripts -->
   <script defer src="assets/js/mapa.js"></script>
   <script defer src="assets/js/main.js"></script>
+  <script>
+    // Rellenar el año automáticamente
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("year").textContent = new Date().getFullYear();
+    });
+  </script>
 </body>
 </html>

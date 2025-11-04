@@ -18,7 +18,7 @@ DATA_DIR = BASE_DIR / "backend" / "data"
 # === ARCHIVOS DE DATOS ===
 XLSX_FILE = DATA_DIR / "libros.xlsx"
 JSON_FILE = DATA_DIR / "libros.json"
-RANGOS_FILE = DATA_DIR / "Rangos_por_fila_generados.xlsx"   # ✅ actualizado
+RANGOS_FILE = DATA_DIR / "Rangos_por_fila_generados.csv"   # ✅ cambiado a CSV
 MAPA_FILE = DATA_DIR / "mapa_biblioteca.csv"  # opcional si lo agregas más adelante
 
 # === APP FLASK ===
@@ -39,7 +39,7 @@ def _ensure_data_dir():
 def load_all_data():
     global _df_cache, _df_rangos, _df_mapa
 
-    # Carga de rangos
+    # ✅ Carga de rangos desde CSV
     _df_rangos = load_rangos(str(RANGOS_FILE))
 
     # Carga de otros datos (si aplica)

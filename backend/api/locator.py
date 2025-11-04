@@ -6,7 +6,7 @@ import os
 
 # === RUTA BASE ===
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MAPA_PATH = os.path.join(BASE_DIR, "data", "Rangos_por_fila_generados.csv")  # ✅ Asegúrate de que el nombre coincide
+MAPA_PATH = os.path.join(BASE_DIR, "data", "Rangos_por_fila_generados.csv")  # ✅ Archivo CSV correcto
 
 # === FUNCIONES DE PARSEO ===
 def parse_signature_to_number(sig: str) -> Optional[float]:
@@ -19,6 +19,7 @@ def parse_signature_to_number(sig: str) -> Optional[float]:
             return float(m.group(1))
     return None
 
+
 def fix_malformed_dewey(x: float) -> float:
     if x is None:
         return x
@@ -30,6 +31,7 @@ def fix_malformed_dewey(x: float) -> float:
     except Exception:
         pass
     return float(x)
+
 
 def parse_range_text(cell: Any) -> Tuple[Optional[float], Optional[float]]:
     if cell is None or (isinstance(cell, float) and pd.isna(cell)) or (isinstance(cell, str) and cell.strip() == ""):
@@ -53,12 +55,14 @@ def parse_range_text(cell: Any) -> Tuple[Optional[float], Optional[float]]:
         return None, None
     return float(min(a, b)), float(max(a, b))
 
+
 # === CARGA DEL MAPA ===
 def load_mapa_ranges(path: str = MAPA_PATH) -> pd.DataFrame:
     if not os.path.exists(path):
         raise FileNotFoundError(f"El archivo no existe: {path}")
     
-    df_raw = pd.read_csv(path)
+    # ✅ Se usa read_csv (no Excel)
+    df_raw = pd.read_csv(path, encoding="utf-8", sep=",")
     if df_raw.empty:
         raise ValueError(f"El archivo CSV está vacío: {path}")
 
@@ -87,7 +91,10 @@ def load_mapa_ranges(path: str = MAPA_PATH) -> pd.DataFrame:
             })
 
     df = pd.DataFrame(rows)
+    if df.empty:
+        raise ValueError(f"No se pudo generar el mapa desde {path}. Verifica las columnas del CSV.")
     return df.sort_values(["Fila", "Anaquel", "RangoInicio"]).reset_index(drop=True)
+
 
 # === LOCALIZADOR ===
 def locate_signatura(signatura: str, df_mapa: Optional[pd.DataFrame] = None, eps: float = 1e-6) -> Dict[str, Any]:
@@ -114,6 +121,7 @@ def locate_signatura(signatura: str, df_mapa: Optional[pd.DataFrame] = None, eps
         "grid": {"x": 1, "y": mapa_best["Anaquel"], "z": mapa_best["Fila"]}
     }
 
+
 # === CONVERSIÓN A COORDENADAS ===
 def grid_to_world(grid_xyz: Dict[str, int], spacing=(1.0, 1.0, 1.0), origin=(0.0, 0.0, 0.0)) -> Dict[str, float]:
     x, y, z = grid_xyz.get("x"), grid_xyz.get("y"), grid_xyz.get("z")
@@ -123,9 +131,11 @@ def grid_to_world(grid_xyz: Dict[str, int], spacing=(1.0, 1.0, 1.0), origin=(0.0
         return {"X": None, "Y": None, "Z": None}
     return {"X": ox + (x - 1) * sx, "Y": oy + (y - 1) * sy, "Z": oz + (z - 1) * sz}
 
+
 def add_world_coordinates(result: dict, spacing=(1.2, 0.35, 2.0), origin=(0.0, 0.0, 0.0)) -> dict:
     result["world_center"] = grid_to_world(result.get("grid", {}), spacing=spacing, origin=origin)
     return result
+
 
 # === FUNCIÓN DE CARGA PRINCIPAL ===
 def load_rangos(path: str = MAPA_PATH) -> pd.DataFrame:
