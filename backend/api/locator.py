@@ -4,9 +4,11 @@ from typing import Any, Dict, Optional, Tuple
 import pandas as pd
 import os
 
+# === RUTA BASE ===
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MAPA_PATH = os.path.join(BASE_DIR, "data", "Sheet1 (1).csv")
+MAPA_PATH = os.path.join(BASE_DIR, "data", "Rangos_por_fila_generados.csv")  # ✅ Asegúrate de que el nombre coincide
 
+# === FUNCIONES DE PARSEO ===
 def parse_signature_to_number(sig: str) -> Optional[float]:
     if sig is None:
         return None
@@ -38,50 +40,70 @@ def parse_range_text(cell: Any) -> Tuple[Optional[float], Optional[float]]:
         parts = [p for p in re.split(r"\s+a\s+", s) if p.strip()]
     if len(parts) != 2:
         return None, None
+
     def to_num(p):
         try:
             return float(p)
         except ValueError:
             return parse_signature_to_number(p)
+
     a = to_num(parts[0])
     b = to_num(parts[1])
     if a is None or b is None:
         return None, None
     return float(min(a, b)), float(max(a, b))
 
+# === CARGA DEL MAPA ===
 def load_mapa_ranges(path: str = MAPA_PATH) -> pd.DataFrame:
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"El archivo no existe: {path}")
+    
     df_raw = pd.read_csv(path)
+    if df_raw.empty:
+        raise ValueError(f"El archivo CSV está vacío: {path}")
+
     df_raw.columns = df_raw.columns.str.strip()
     ana_cols = [c for c in df_raw.columns if str(c).lower().startswith("anaquel")]
     rows = []
+
     for _, row in df_raw.iterrows():
         fila = row.get("Estantería") or row.get("Fila")
         try:
             fila = int(float(fila)) if pd.notna(fila) else None
         except Exception:
             fila = None
+
         for c in ana_cols:
             m = re.search(r"(\d+)", str(c))
             anaquel = int(m.group(1)) if m else None
             r_ini, r_fin = parse_range_text(row[c])
             if r_ini is None or r_fin is None:
                 continue
-            rows.append({"Fila": fila, "Anaquel": anaquel, "RangoInicio": r_ini, "RangoFin": r_fin})
+            rows.append({
+                "Fila": fila,
+                "Anaquel": anaquel,
+                "RangoInicio": r_ini,
+                "RangoFin": r_fin
+            })
+
     df = pd.DataFrame(rows)
     return df.sort_values(["Fila", "Anaquel", "RangoInicio"]).reset_index(drop=True)
 
+# === LOCALIZADOR ===
 def locate_signatura(signatura: str, df_mapa: Optional[pd.DataFrame] = None, eps: float = 1e-6) -> Dict[str, Any]:
     val = parse_signature_to_number(signatura)
     if val is None:
         raise ValueError(f"No se pudo extraer número de '{signatura}'")
     if df_mapa is None:
         df_mapa = load_mapa_ranges(MAPA_PATH)
+
     c_mapa = df_mapa[(df_mapa["RangoInicio"] - eps <= val) & (val <= df_mapa["RangoFin"] + eps)].copy()
     if not c_mapa.empty:
         c_mapa["ancho"] = c_mapa["RangoFin"] - c_mapa["RangoInicio"]
         mapa_best = c_mapa.sort_values("ancho", ascending=True).iloc[0].to_dict()
     else:
         raise LookupError(f"No hay coincidencias para '{signatura}' (valor {val}).")
+
     return {
         "input": signatura,
         "numeric": float(val),
@@ -92,6 +114,7 @@ def locate_signatura(signatura: str, df_mapa: Optional[pd.DataFrame] = None, eps
         "grid": {"x": 1, "y": mapa_best["Anaquel"], "z": mapa_best["Fila"]}
     }
 
+# === CONVERSIÓN A COORDENADAS ===
 def grid_to_world(grid_xyz: Dict[str, int], spacing=(1.0, 1.0, 1.0), origin=(0.0, 0.0, 0.0)) -> Dict[str, float]:
     x, y, z = grid_xyz.get("x"), grid_xyz.get("y"), grid_xyz.get("z")
     sx, sy, sz = spacing
@@ -104,7 +127,8 @@ def add_world_coordinates(result: dict, spacing=(1.2, 0.35, 2.0), origin=(0.0, 0
     result["world_center"] = grid_to_world(result.get("grid", {}), spacing=spacing, origin=origin)
     return result
 
-def load_rangos(path: str) -> pd.DataFrame:
+# === FUNCIÓN DE CARGA PRINCIPAL ===
+def load_rangos(path: str = MAPA_PATH) -> pd.DataFrame:
     try:
         return load_mapa_ranges(path)
     except Exception as e:

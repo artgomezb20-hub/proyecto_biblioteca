@@ -35,11 +35,11 @@ def _ensure_data_dir():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
-# === CARGA DE DATOS (EJEMPLO DE LUGAR DONDE CAMBIAS LA LÍNEA) ===
+# === CARGA DE DATOS ===
 def load_all_data():
     global _df_cache, _df_rangos, _df_mapa
 
-    # Carga de rangos (línea corregida)
+    # Carga de rangos
     _df_rangos = load_rangos(str(RANGOS_FILE))
 
     # Carga de otros datos (si aplica)
@@ -50,3 +50,16 @@ def load_all_data():
 
     if MAPA_FILE.exists():
         _df_mapa = pd.read_csv(MAPA_FILE)
+
+
+# === RUTA BASE PARA PROBAR ===
+@app.route("/")
+def home():
+    return jsonify({"status": "ok", "message": "Servidor Flask funcionando correctamente ✅"})
+
+
+# === MAIN ===
+if __name__ == "__main__":
+    _ensure_data_dir()   # crea la carpeta data si no existe
+    load_all_data()      # carga los datos antes de iniciar el servidor
+    app.run(host="0.0.0.0", port=5000, debug=True)
